@@ -2,10 +2,17 @@ import gradio as gr
 import cv2
 import tempfile
 from ultralytics import YOLOv10
+import os
 
 
-def yolov10_inference(image, video, model_id, image_size, conf_threshold):
-    model = YOLOv10.from_pretrained(f'jameslahm/{model_id}')
+def yolov10_inference(image, video, model_path, image_size, conf_threshold, type = 'yolov10'):
+    if os.path.exists(model_path):
+        print("Loading YOLOv10 model...")
+        if type == 'yolov10':
+            model = YOLOv10(model_path)
+    else:
+        print(f"Model path '{model_path}' does not exist.")
+        return None, None
     if image:
         results = model.predict(source=image, imgsz=image_size, conf=conf_threshold)
         annotated_image = results[0].plot()
@@ -55,18 +62,12 @@ def app():
                     value="Image",
                     label="Input Type",
                 )
-                model_id = gr.Dropdown(
-                    label="Model",
-                    choices=[
-                        "yolov10n",
-                        "yolov10s",
-                        "yolov10m",
-                        "yolov10b",
-                        "yolov10l",
-                        "yolov10x",
-                    ],
-                    value="yolov10m",
+                model_id = gr.Textbox(
+                    label="Model Path",
+                    placeholder="Enter path to your trained model (e.g., 'Custom Model')",
+                    value="C:\\Workspace\\Study\\DATN\\Code\\yolo\\yolov10\\models\\yolov10s_1.pt",
                 )
+
                 image_size = gr.Slider(
                     label="Image Size",
                     minimum=320,
@@ -114,45 +115,13 @@ def app():
             outputs=[output_image, output_video],
         )
 
-        gr.Examples(
-            examples=[
-                [
-                    "ultralytics/assets/bus.jpg",
-                    "yolov10s",
-                    640,
-                    0.25,
-                ],
-                [
-                    "ultralytics/assets/zidane.jpg",
-                    "yolov10s",
-                    640,
-                    0.25,
-                ],
-            ],
-            fn=yolov10_inference_for_examples,
-            inputs=[
-                image,
-                model_id,
-                image_size,
-                conf_threshold,
-            ],
-            outputs=[output_image],
-            cache_examples='lazy',
-        )
-
 gradio_app = gr.Blocks()
 with gradio_app:
     gr.HTML(
         """
-    <h1 style='text-align: center'>
-    YOLOv10: Real-Time End-to-End Object Detection
-    </h1>
-    """)
-    gr.HTML(
-        """
-        <h3 style='text-align: center'>
-        <a href='https://arxiv.org/abs/2405.14458' target='_blank'>arXiv</a> | <a href='https://github.com/THU-MIG/yolov10' target='_blank'>github</a>
-        </h3>
+        <h1 style='text-align: center'>
+        Detect Argicultral Objects
+        </h1>
         """)
     with gr.Row():
         with gr.Column():
